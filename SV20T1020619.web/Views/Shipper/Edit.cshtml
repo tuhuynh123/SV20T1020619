@@ -11,10 +11,12 @@
             <div class="form-group">
                 <label>Tên người giao hàng:</label>
                 <input type="text" class="form-control" name="@nameof(Model.ShipperName)" autofocus value="@Model.ShipperName">
+                @Html.ValidationMessageFor(m => m.ShipperName, "", new { @style = "color:#f00" })
             </div>
             <div class="form-group">
                 <label>Điện thoại:</label>
                 <input type="text" class="form-control" name="@nameof(Model.Phone)" value="@Model.Phone">
+                @Html.ValidationMessageFor(m => m.Phone, "", new { @style = "color:#f00" })
             </div>
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">

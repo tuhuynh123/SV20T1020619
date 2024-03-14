@@ -1,32 +1,58 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SV20T1020619.BusinessLayers;
 using SV20T1020619.DomainModels;
+using SV20T1020619.web.Models;
 
 namespace SV20T1020619.web.Controllers
 {
+    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Employee}")]   
     public class CategoryController : Controller
     {
         const int PAGE_SIZE = 20;
+        const string CREATE_Title = "Bổ sung loại hàng";
+        const string CATEFORY_SEARCH = "Category_search";
 
-        public IActionResult Index(int page = 1, string searchValue = "")
+        public IActionResult Index()
+        {
+
+            // kiểm tra xem trong session có lưu điều kiện tìm kiếm không.
+            // Nếu có thì sử dụng lại điều kiện tìm kiếm ngược lại thì tìm kiếm theo điều kiện mặc định
+            PaginationSearchInput? input = ApplicationContext.GetSessionData<PaginationSearchInput>(CATEFORY_SEARCH);
+            if (input == null)
+            {
+                input = new PaginationSearchInput()
+                {
+                    Page = 1,
+                    PageSize = PAGE_SIZE,
+                    SearchValue = ""
+
+                };
+            }
+            return View(input);
+        }
+
+        public IActionResult Search(PaginationSearchInput input)
         {
             int rowCount = 0;
-            var data = CommonDataService.ListOfCategories(out rowCount, page, PAGE_SIZE, searchValue ?? "");
-
-            var model = new Models.CategorySearchResult()
+            var data = CommonDataService.ListOfCategories(out rowCount, input.Page, input.PageSize, input.SearchValue ?? "");
+            var model = new CategorySearchResult()
             {
-                Page = page,
-                PageSize = PAGE_SIZE,
-                SearchValue = searchValue ?? "",
+                Page = input.Page,
+                PageSize = input.PageSize,
+                SearchValue = input.SearchValue ?? "",
                 RowCount = rowCount,
                 Data = data
             };
-            return View(model);//Models.CategorySearchResult
+
+            ApplicationContext.SetSessionData(CATEFORY_SEARCH, input);
+
+            return View(model);
         }
 
         public IActionResult Create()
         {
-            ViewBag.Title = "Bổ sung loại hàng";
+            ViewBag.Title = CREATE_Title;
             var model = new Category()
             {
                 CategoryID = 0,
@@ -47,8 +73,19 @@ namespace SV20T1020619.web.Controllers
 
         [HttpPost]
         public IActionResult Save(Category model) 
-        { 
-            if(model.CategoryID== 0)
+        {
+            if (string.IsNullOrWhiteSpace(model.CategoryName))
+                ModelState.AddModelError(nameof(model.CategoryName), "Tên loại hàng không được để trống");
+            if (string.IsNullOrWhiteSpace(model.Description))
+                ModelState.AddModelError(nameof(model.Description), "Mô tả không được để trống");
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Title = model.CategoryID == 0 ? CREATE_Title : "Cập nhập thông tin khách hàng";
+                return View("Edit", model);
+            }
+
+            if (model.CategoryID== 0)
             {
                 int id = CommonDataService.AddCategory(model);
             }

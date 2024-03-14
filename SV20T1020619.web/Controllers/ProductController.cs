@@ -1,28 +1,76 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SV20T1020619.BusinessLayers;
+using SV20T1020619.DomainModels;
 
 namespace SV20T1020619.web.Controllers
 {
+    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Employee}")]
     public class ProductController : Controller
     {
-        public IActionResult Index()
+        const int PAGE_SIZE = 20;
+
+        public IActionResult Index(int page = 1, string searchValue = "",int categoryId = 0,int supplierId = 0, decimal minPrice = 0,decimal maxPrice = 0)
         {
-            return View();
+            int rowCount = 0;
+            var data = ProductDataService.ListProducts(out rowCount, page, PAGE_SIZE, searchValue ?? "", categoryId, supplierId, minPrice, maxPrice);
+
+            var model = new Models.ProductSearchResult()
+            {
+                Page = page,
+                PageSize = PAGE_SIZE,
+                SearchValue = searchValue ?? "",
+                RowCount = rowCount,
+                CategoryId = categoryId,
+                SupplierId = supplierId,
+                MinPrice = minPrice,
+                MaxPrice = maxPrice,
+                Data = data
+            };
+            return View(model);
         }
         public IActionResult Create()
         {
             ViewBag.Title = "Bổ sung mặt hàng";
-            ViewBag.IsEdit = false;
-            return View("Edit");
+            var model = new Product()
+            {
+                ProductID = 0
+            };
+            return View("Edit", model);
         }
-        public IActionResult Edit(string id)
+        public IActionResult Edit(int id = 0)
         {
             ViewBag.Title = "Cập nhập thông tin mặt hàng";
-            ViewBag.IsEdit = true;
-            return View();
+            var model = ProductDataService.GetProduct(id);
+            if (model == null)
+                return RedirectToAction("Index");  
+            return View(model);
         }
-        public IActionResult Delete(string id)
+        [HttpPost]
+        public IActionResult Save(Product model)
         {
-            return View();
+            if (model.ProductID == 0)
+            {
+                int id = ProductDataService.AddProduct(model);
+            }
+            else
+            {
+                bool result = ProductDataService.UpdateProduct(model);
+            }
+            return RedirectToAction("Index");
+        }
+        public IActionResult Delete(int id = 0)
+        {
+            if (Request.Method == "POST")
+            {
+                bool result = ProductDataService.DeleteProduct(id);
+            }
+
+            var model = ProductDataService.GetProduct(id);
+            if (model == null)
+                return RedirectToAction("Index");
+
+            return View(model);
         }
         public IActionResult Photo(string id, string method, int photoId = 0) 
         {

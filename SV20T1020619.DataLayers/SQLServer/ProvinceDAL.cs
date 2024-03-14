@@ -39,7 +39,7 @@ namespace SV20T1020619.DataLayers.SQLServer
         public IList<Province> List(int page = 1, int pageSize = 0, string searchValue = "")
         {
             List<Province> List = new List<Province>();
-            using (var connection = OpenConnection()) 
+            using (var connection = OpenConnection())
             {
                 var sql = @"select * from Provinces";
                 List = connection.Query<Province>(sql: sql, commandType: CommandType.Text).ToList();

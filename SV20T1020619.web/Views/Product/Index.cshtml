@@ -1,26 +1,27 @@
-﻿@{
+﻿@model SV20T1020619.web.Models.ProductSearchResult
+@{
     ViewBag.Title = "Quản lý Mặt hàng";
 }
     <div class="box box-primary">
         <div class="box-body">
-            <form id="formSearch" action="#">
+            <form id="formSearch" action="~/Product">
                 <div class="container-fluid row">
                     <div class="col-sm-3">
-                        <select class="form-control" name="category">
+                        <select class="form-control" name="category" >
                             <option>--Tất cả loại hàng--</option>
                             <option>--Điện gia dụng--</option>
                             <option>--Thực phẩm--</option>
                         </select>
                     </div>
                     <div class="col-sm-3">
-                        <select class="form-control" name="category">
+                        <select class="form-control" name="supplier">
                             <option>--Tất cả nhà cung cấp--</option>
                             <option>--Công ty trách nhiệm vô hạn--</option>
                             <option>--Công ty vinafone--</option>
                         </select>
                     </div>
                     <div class="col-sm-6 input-group">
-                        <input name="searchValue" type="text" class="form-control" placeholder="Nhập tên mặt hàng cần tìm">
+                        <input name="searchValue" type="text" class="form-control" placeholder="Nhập tên mặt hàng cần tìm" value="@Model.SearchValue">
                         <div class="input-group-btn">
                             <button class="btn btn-info" type="submit">
                                 <i class="glyphicon glyphicon-search"></i>
@@ -35,7 +36,7 @@
             </form>
             <div>
                 <p style="margin:10px 0 10px 0">
-                    Có <strong>1,024</strong> mặt hàng trong tổng số <strong>100</strong> trang
+                    Có <strong>@Model.RowCount</strong> mặt hàng trong tổng số <strong>@Model.PageCount</strong> trang
                 </p>
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover table-striped">
@@ -50,23 +51,20 @@
                             </tr>
                         </thead>
                         <tbody>
-                            `@for (int i = 0; i <= 10; i++)
+                            `@foreach (var item in Model.Data)
                             {
                                 <tr>
                                     <td>
-                                        <img style="width:80px" src="~/images/products/acer.png" alt="Ảnh" />
-                                    </td>
-                                    <td>acer 15inch</td>
-                                    <td>Cái</td>
-
-                                    <td>45,000,000</td>
-
-                                    <td></td>
+                                    <img style="width:80px" src="@Url.Content(string.IsNullOrWhiteSpace(item.Photo) ? "~/images/products/noproduct.png" : $"~/images/products/{item.Photo}")">
+                                    <td>@item.ProductName</td>
+                                    <td>@item.Unit</td>
+                                    <td>@item.Price</td>
+                                    <td>@item.IsSelling</td>
                                     <td class="text-right">
-                                        <a href="~/Product/Edit/123" class="btn btn-xs btn-info">
+                                        <a href="~/Product/Edit/@item.ProductID" class="btn btn-xs btn-info">
                                             <i class="fa fa-edit"></i>
                                         </a>
-                                        <a href="~/Product/Delete/123" class="btn btn-xs btn-danger">
+                                        <a href="~/Product/Delete/@item.ProductID" class="btn btn-xs btn-danger">
                                             <i class="fa fa-remove"></i>
 
                                         </a>
@@ -80,12 +78,18 @@
 
                 <div class="text-center">
                     <ul class="pagination">
-                        <li><a href="#">1</a></li>
-                        <li><a href="#">2</a></li>
-                        <li><a href="#">3</a></li>
-                        <li><a href="#">4</a></li>
-                        <li><a href="#">5</a></li>
-                    </ul>
+                    @for (int p = 1; p <= Model.PageCount; p++)
+                    {
+                        if (Model.Page == p)
+                        {
+                            <li class="active"><a href="#">@p</a></li>
+                        }
+                        else
+                        {
+                            <li><a href="~/Product?page=@p&searchValue=@Model.SearchValue">@p</a></li>
+                        }
+                    }
+                </ul>
                 </div>
             </div>
         </div>

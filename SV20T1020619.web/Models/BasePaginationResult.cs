@@ -66,4 +66,13 @@ namespace SV20T1020619.web.Models
     {
         public List <Supplier> Data { get; set; } = new List<Supplier> ();
     }
+
+    public class ProductSearchResult : BasePaginationResult
+    {
+        public List<Product> Data { get; set; } = new List<Product>();
+        public int CategoryId { get; set; }
+        public int SupplierId { get; set; }
+        public decimal MinPrice { get; set; }
+        public decimal MaxPrice { get; set; }
+    }
 }
